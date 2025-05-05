@@ -1,0 +1,35 @@
+max_clients: 100000
+
+queues:
+  - name: Q1
+    servers: 1
+    arrival:
+      low: 2.0
+      high: 4.0
+    service:
+      low: 1.0
+      high: 2.0
+    routes:
+      Q2: 0.80
+      Q3: 0.20
+
+  - name: Q2
+    servers: 2
+    capacity: 5
+    service:
+      low: 4.0
+      high: 8.0
+    routes:
+      Q1: 0.30
+      Q2: 0.50 
+      exit: 0.20
+
+  - name: Q3
+    servers: 2
+    capacity: 10
+    service:
+      low: 5.0
+      high: 15.0
+    routes:
+      Q3: 0.70 
+      exit: 0.30
