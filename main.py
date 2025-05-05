@@ -3,6 +3,17 @@ import yaml
 import random
 from collections import defaultdict
 
+def pseudo_random(seed, a, c, m, n):    
+    x = seed
+    normalized_rand_numbers = []
+    
+    for _ in range(n):
+        x = (a * x + c) % m
+        normalized_rand_numbers.append(x / m)
+    
+    return normalized_rand_numbers
+
+
 def load_config(path):
     with open(path) as f:
         cfg = yaml.safe_load(f)
@@ -63,7 +74,7 @@ class QueueNode:
 
         with self.resource.request() as req:
             yield req
-            svc = random.uniform(self.svc_low, self.svc_high)
+            svc = self.svc_low + ((self.svc_high - self.svc_low) * self.stats['rand_nmbrs'][self.stats['finished']])
             yield self.env.timeout(svc)
 
         self.record_state_change()
@@ -94,6 +105,13 @@ class QueueNode:
 def main():
     queues_cfg, max_clients = load_config("config.yml")
     env = simpy.Environment()
+
+    seed = 2025
+    a = 19105917
+    c = 19980522
+    m = 2**32
+    n = max_clients  
+    nmbrs = pseudo_random(seed, a, c, m, n)
     stats = defaultdict(int)
     stats.update({
         'next_id': 1,
@@ -101,7 +119,8 @@ def main():
         'completed': 0,
         'lost': 0,
         'finished': 0,
-        'response_time_sum': 0.0
+        'response_time_sum': 0.0,
+        "rand_nmbrs": nmbrs
     })
 
     for q in queues_cfg:
